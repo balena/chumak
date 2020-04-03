@@ -42,7 +42,7 @@ init({Type, Identity}) ->
             {stop, Reason};
         ModuleName -> %% get the implementation of the type
             {ok, S} = ModuleName:init(Identity),
-            {ok, #state{socket=ModuleName, socket_state=S, identity = Identity}}
+            {ok, #state{socket=ModuleName, socket_state=S, identity=Identity}}
     end.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -114,10 +114,9 @@ handle_info({peer_recv_message, Message, From}, State) ->
 handle_info({queue_ready, Identity, From}, State) ->
     queue_ready(Identity, From, State);
 
-%% When the client is crashed we should not exit 
-%% and we should let the implementaion of type to deal with this
+%% When the client exits, the socket closes
 handle_info({'EXIT', PeerPid, _Other}, State) ->
-    exit_peer(PeerPid, State);
+    {stop, normal, State};
 
 handle_info(InfoMsg, State) ->
     error_logger:info_report([
